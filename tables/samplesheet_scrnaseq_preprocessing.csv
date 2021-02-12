@@ -1,0 +1,13 @@
+id,input_adata,min_counts,max_counts,min_genes,max_pct_mito,batch_key
+HCL_P1_T0,/data/projects/2021/HairyCellLeukemiaWolf/10_prepare_adata/HCL_P1_T0.h5ad,1000,60000,200,40,
+HCL_P1_T1,/data/projects/2021/HairyCellLeukemiaWolf/10_prepare_adata/HCL_P1_T1.h5ad,1500,60000,200,45,
+HCL_P1_T2,/data/projects/2021/HairyCellLeukemiaWolf/10_prepare_adata/HCL_P1_T2.h5ad,1500,60000,200,45,
+HCL_P2_T0,/data/projects/2021/HairyCellLeukemiaWolf/10_prepare_adata/HCL_P2_T0.h5ad,1700,60000,200,45,
+HCL_P2_T1,/data/projects/2021/HairyCellLeukemiaWolf/10_prepare_adata/HCL_P2_T1.h5ad,2000,60000,200,45,
+HCL_P2_T2,/data/projects/2021/HairyCellLeukemiaWolf/10_prepare_adata/HCL_P2_T2.h5ad,2000,60000,200,45,
+HCL_P3_T0,/data/projects/2021/HairyCellLeukemiaWolf/10_prepare_adata/HCL_P3_T0.h5ad,2000,60000,200,45,
+HCL_P3_T1,/data/projects/2021/HairyCellLeukemiaWolf/10_prepare_adata/HCL_P3_T1.h5ad,2000,60000,200,45,
+HCL_P3_T2,/data/projects/2021/HairyCellLeukemiaWolf/10_prepare_adata/HCL_P3_T2.h5ad,2000,60000,200,45,
+HCL_P4_T0,/data/projects/2021/HairyCellLeukemiaWolf/10_prepare_adata/HCL_P4_T0.h5ad,1800,60000,200,45,
+HCL_P5_T0,/data/projects/2021/HairyCellLeukemiaWolf/10_prepare_adata/HCL_P5_T0.h5ad,2000,60000,200,45,
+HCL_P6_T0,/data/projects/2021/HairyCellLeukemiaWolf/10_prepare_adata/HCL_P6_T0.h5ad,1800,60000,200,45,

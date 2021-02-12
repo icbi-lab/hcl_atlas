@@ -1,0 +1,4 @@
+.nextflow*
+*.code-workspace
+twistd.pid
+.ipynb_checkpoints
