@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 
 cd ../.. && \
-nextflow run /home/sturm/projects/2020/single-cell-analysis-nf/main.nf \
+nextflow run single-cell-analysis-nf/main.nf \
     --input tables/samplesheet_scrnaseq_preprocessing.csv \
     --outdir data/20_scrnaseq_qc \
     -resume \
