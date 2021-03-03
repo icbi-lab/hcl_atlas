@@ -1,7 +1,7 @@
 patient_id,sex,age,ethnicity,response
-P1,female,85,caucasian,short-term
-P2,male,73,caucasian,short-term
-P3,male,75,caucasian,short-term
-P4,female,67,caucasian,long-term
-P5,male,56,caucasian,long-term
-P6,male,71,caucasian,long-term
+P1,female,85,caucasian,short_term
+P2,male,73,caucasian,short_term
+P3,male,75,caucasian,short_term
+P4,female,67,caucasian,long_term
+P5,male,56,caucasian,long_term
+P6,male,71,caucasian,long_term
