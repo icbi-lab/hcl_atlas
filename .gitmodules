@@ -1,3 +1,6 @@
-[submodule "single-cell-analysis-nf"]
-	path = single-cell-analysis-nf
+[submodule "lib/deseq2icbi"]
+	path = lib/deseq2icbi
+	url = git@gitlab.i-med.ac.at:icbi-lab/tools/deseq2icbi.git
+[submodule "lib/single-cell-analysis-nf"]
+	path = lib/single-cell-analysis-nf
 	url = git@gitlab.i-med.ac.at:icbi-lab/pipelines/single-cell-analysis-nf.git
