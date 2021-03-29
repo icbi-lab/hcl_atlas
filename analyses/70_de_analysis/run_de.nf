@@ -16,13 +16,15 @@ process DESEQ2 {
 
     script:
     def sc_options = meta['singlecell'] ? "--fc_cutoff=0.58 --fdr_cutoff=0.000001 --skip_pca" : ""
+    def covariates = meta['covariates'] ? "--covariate_formula=${meta['covariate_formula']}" : ""
     def sc_rm = meta['singlecell'] ? "rm deseq2_res_sc_**/*detectedGenes*_min_10_reads*.tsv" : ""
+    def paired = meta['paired_grp'] ? "--paired_grp=${meta['paired_grp']}" : ""
     """
     export OPENBLAS_NUM_THREADS=${task.cpus} OMP_NUM_THREADS=${task.cpus}  \\
         MKL_NUM_THREADS=${task.cpus} OMP_NUM_cpus=${task.cpus}  \\
         MKL_NUM_cpus=${task.cpus} OPENBLAS_NUM_cpus=${task.cpus}
     mkdir deseq2_res_${meta.id}
-    runDESeq2_ICBI.R $expr $samplesheet \\
+    runDESeq2_ICBI.R $samplesheet $expr \\
         --result_dir=deseq2_res_${meta.id} \\
         --c1=${meta.c1} \\
         --c2=${meta.c2} \\
@@ -30,7 +32,9 @@ process DESEQ2 {
         --condition_col=${meta.condition_col} \\
         --gene_id_type=SYMBOL \\
         --n_cpus=${task.cpus} \\
-        ${sc_options}
+        ${paired} \\
+        ${sc_options} \\
+        ${covariates}
 
     ${sc_rm}
     """
@@ -43,20 +47,19 @@ workflow {
             [
                 [singlecell: false, id: "bulk_response_all_timepoints", c1: "short_term", c2: "long_term", sample_col: "patient", condition_col: "response"],
                 [singlecell: false, id: "bulk_response_t0", c1: "short_term", c2: "long_term", sample_col: "patient", condition_col: "response"],
-                [singlecell: false, id: "bulk_timepoints", c1: "post-treatment", c2: "pre-treatment", sample_col: "sample", condition_col: "timepoint"],
+                [singlecell: false, id: "bulk_timepoints", c1: "post-treatment", c2: "pre-treatment", sample_col: "sample", condition_col: "timepoint", paired_grp: "patient"],
                 [singlecell: true, id: "sc_response_all_timepoints_P1_vs_long_term", c1: "short_term", c2: "long_term", sample_col: "cell_id", condition_col: "response"],
                 [singlecell: true, id: "sc_response_all_timepoints_P2_vs_long_term", c1: "short_term", c2: "long_term", sample_col: "cell_id", condition_col: "response"],
                 [singlecell: true, id: "sc_response_all_timepoints_P3_vs_long_term", c1: "short_term", c2: "long_term", sample_col: "cell_id", condition_col: "response"],
-                [singlecell: true, id: "sc_response_T0_P1_vs_long_term", c1: "short_term", c2: "long_term", sample_col: "cell_id", condition_col: "response"],
                 [singlecell: true, id: "sc_response_T0_P2_vs_long_term", c1: "short_term", c2: "long_term", sample_col: "cell_id", condition_col: "response"],
                 [singlecell: true, id: "sc_response_T0_P3_vs_long_term", c1: "short_term", c2: "long_term", sample_col: "cell_id", condition_col: "response"],
-                [singlecell: true, id: "sc_healthy_vs_malignant_b_cells", c1: "malignant", c2: "healthy", sample_col: "cell_id", condition_col: "cell_type"],
-                [singlecell: true, id: "sc_fosb_b_cells", c1: "fos_malignant_b", c2: "malignant_b", sample_col: "cell_id", condition_col: "cell_phenotype"],
+                [singlecell: true, id: "sc_healthy_vs_malignant_b_cells", c1: "malignant", c2: "healthy", sample_col: "cell_id", condition_col: "cell_type", covariate_formula: "+patient+timepoint"],
+                [singlecell: true, id: "sc_fosb_b_cells", c1: "fos_malignant_b", c2: "malignant_b", sample_col: "cell_id", condition_col: "cell_phenotype", covariate_formula: "+patient+timepoint"],
             ]
         ).map {
             it -> [
                 it, 
-                file(input_path + it['id'] + "_bulk_df.tsv", checkIfExists: true),
+                file(input_path + it['id'] + (it['singlecell'] ? "" : "_bulk_df") + ".tsv", checkIfExists: true),
                 file(input_path + it['id'] + "_samplesheet.csv", checkIfExists: true)
             ]
         }
