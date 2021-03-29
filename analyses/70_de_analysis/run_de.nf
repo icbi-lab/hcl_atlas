@@ -3,10 +3,12 @@
 nextflow.enable.dsl = 2
 
 process DESEQ2 {
-    publishDir "../../data/40_de_analysis/72_run_de/", mode: "copy"
+    tag { meta.id }
+    publishDir "../../data/70_de_analysis/72_run_de/", mode: "copy"
 
     cpus { meta['singlecell'] ? 11 : 4 } 
     conda "/data/scratch/sturm/conda/envs/2021-hairy-cell-leukemia-wolf-de2"
+    errorStrategy 'finish'
 
     input:
         tuple val(meta), path(expr), path(samplesheet)
@@ -20,9 +22,6 @@ process DESEQ2 {
     def sc_rm = meta['singlecell'] ? "rm deseq2_res_sc_**/*detectedGenes*_min_10_reads*.tsv" : ""
     def paired = meta['paired_grp'] ? "--paired_grp=${meta['paired_grp']}" : ""
     """
-    export OPENBLAS_NUM_THREADS=${task.cpus} OMP_NUM_THREADS=${task.cpus}  \\
-        MKL_NUM_THREADS=${task.cpus} OMP_NUM_cpus=${task.cpus}  \\
-        MKL_NUM_cpus=${task.cpus} OPENBLAS_NUM_cpus=${task.cpus}
     mkdir deseq2_res_${meta.id}
     runDESeq2_ICBI.R $samplesheet $expr \\
         --result_dir=deseq2_res_${meta.id} \\
