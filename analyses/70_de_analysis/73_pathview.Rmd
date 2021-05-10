@@ -1,0 +1,95 @@
+---
+title: "Pathview figures"
+output: html_document
+---
+
+```{r, include=FALSE}
+library(readr)
+library(pathview)
+library(dplyr)
+library(org.Hs.eg.db)
+library(knitr)
+```
+
+```{r, include=FALSE}
+de_res = read_tsv("../../data/70_de_analysis/72_run_de/deseq2_res_bulk_response_t0/short_term_long_term_IHWallGenes.tsv")
+entrez_ids = AnnotationDbi::select(org.Hs.eg.db, keys=de_res$gene_id, keytype="SYMBOL", columns="ENTREZID")
+de_res = de_res %>% inner_join(entrez_ids, by=c("gene_id"="SYMBOL"))
+```
+
+```{r, include=FALSE}
+de_res_filtered = de_res %>% filter(padj < 1)
+gene_stat = de_res$stat
+gene_p = -log10(de_res$padj) * sign(de_res$log2FoldChange)
+gene_fc = de_res_filtered$log2FoldChange
+names(gene_stat) = de_res$ENTREZID
+names(gene_p) = de_res$ENTREZID
+names(gene_fc) = de_res_filtered$ENTREZID
+```
+
+```{r, include=FALSE}
+pathview_p = function(pathway) {
+  pathview(
+    gene_p,
+    pathway.id = pathway,
+    limit = list(gene = 4, cpd = 1),
+    low = c(gene = "#0571b0", cpd = "blue"),
+    mid = c("grey", cpd = "grey"),
+    high = c(gene = "#ca0020", cpd = "yellow"),
+    bins = c(gene=20, cpd=20),
+    out.suffix = "logfdr.pathview"
+  )
+  knitr::include_graphics(paste0(pathway, ".logfdr.pathview.png"))
+}
+
+pathview_fc = function(pathway) {
+  pathview(
+    gene_fc,
+    pathway.id = pathway,
+    limit = list(gene = 2, cpd = 1),
+    low = c(gene = "#0571b0", cpd = "blue"),
+    mid = c("grey", cpd = "grey"),
+    high = c(gene = "#ca0020", cpd = "yellow"),
+    bins = c(gene=20, cpd=20),
+    out.suffix = "sigfc.pathview"
+  )
+  knitr::include_graphics(paste0(pathway, ".sigfc.pathview.png"))
+}
+```
+
+## Pathways showing log-fold change of all genes
+
+ * Fold-change of all genes is shown independent of whether the difference is statistically significant or not
+ * grey = no difference
+ * white = gene not found in the single-cell data. 
+ * red = increased expression in short_term
+ * blue = increased expression in long_term
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, dpi=30}
+# pathview_p("hsa04010")
+pathview_fc("hsa04010")
+# pathview_p("hsa04310")
+pathview_fc("hsa04310")
+
+```
+
+## Pathways showing log-fold change of statistically significantly (FDR < 0.1) differentially expressed genes. 
+
+ * white = FDR > 0.1 or gene not found in single-cell data. 
+
+```{r, include=FALSE}
+de_res_filtered = de_res %>% filter(padj < .1)
+gene_stat = de_res$stat
+gene_p = -log10(de_res$padj) * sign(de_res$log2FoldChange)
+gene_fc = de_res_filtered$log2FoldChange
+names(gene_stat) = de_res$ENTREZID
+names(gene_p) = de_res$ENTREZID
+names(gene_fc) = de_res_filtered$ENTREZID
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, dpi=30}
+# pathview_p("hsa04010")
+pathview_fc("hsa04010")
+# pathview_p("hsa04310")
+pathview_fc("hsa04310")
+```
