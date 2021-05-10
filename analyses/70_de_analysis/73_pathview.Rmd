@@ -28,7 +28,7 @@ names(gene_fc) = de_res_filtered$ENTREZID
 ```
 
 ```{r, include=FALSE}
-pathview_p = function(pathway) {
+pathview_p = function(pathway, file_suffix="") {
   pathview(
     gene_p,
     pathway.id = pathway,
@@ -37,12 +37,12 @@ pathview_p = function(pathway) {
     mid = c("grey", cpd = "grey"),
     high = c(gene = "#ca0020", cpd = "yellow"),
     bins = c(gene=20, cpd=20),
-    out.suffix = "logfdr.pathview"
+    out.suffix = paste0("logfdr.pathview", file_suffix)
   )
-  knitr::include_graphics(paste0(pathway, ".logfdr.pathview.png"))
+  knitr::include_graphics(paste0(pathway, ".logfdr.pathview", file_suffix, ".png"))
 }
 
-pathview_fc = function(pathway) {
+pathview_fc = function(pathway, file_suffix="") {
   pathview(
     gene_fc,
     pathway.id = pathway,
@@ -51,9 +51,9 @@ pathview_fc = function(pathway) {
     mid = c("grey", cpd = "grey"),
     high = c(gene = "#ca0020", cpd = "yellow"),
     bins = c(gene=20, cpd=20),
-    out.suffix = "sigfc.pathview"
+    out.suffix = paste0("sigfc.pathview", file_suffix)
   )
-  knitr::include_graphics(paste0(pathway, ".sigfc.pathview.png"))
+  knitr::include_graphics(paste0(pathway, ".sigfc.pathview", file_suffix, ".png"))
 }
 ```
 
@@ -67,10 +67,9 @@ pathview_fc = function(pathway) {
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, dpi=30}
 # pathview_p("hsa04010")
-pathview_fc("hsa04010")
+pathview_fc("hsa04010", ".all_genes")
 # pathview_p("hsa04310")
-pathview_fc("hsa04310")
-
+pathview_fc("hsa04310", ".all_genes")
 ```
 
 ## Pathways showing log-fold change of statistically significantly (FDR < 0.1) differentially expressed genes. 
@@ -89,7 +88,7 @@ names(gene_fc) = de_res_filtered$ENTREZID
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, dpi=30}
 # pathview_p("hsa04010")
-pathview_fc("hsa04010")
+pathview_fc("hsa04010", ".fdr0.1")
 # pathview_p("hsa04310")
-pathview_fc("hsa04310")
+pathview_fc("hsa04310", ".fdr0.1")
 ```
