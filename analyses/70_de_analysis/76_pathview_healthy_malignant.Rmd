@@ -1,0 +1,60 @@
+---
+title: "Pathview figures"
+output: html_document
+---
+
+```{r, include=FALSE}
+library(readr)
+library(pathview)
+library(dplyr)
+library(org.Hs.eg.db)
+library(knitr)
+```
+
+```{r, include=FALSE}
+de_res = read_tsv("../../data/70_de_analysis/72_run_de/deseq2_res_sc_healthy_vs_malignant_b_cells/malignant_healthy_IHWallGenes.tsv")
+entrez_ids = AnnotationDbi::select(org.Hs.eg.db, keys=de_res$gene_id, keytype="SYMBOL", columns="ENTREZID")
+de_res = de_res %>% inner_join(entrez_ids, by=c("gene_id"="SYMBOL"))
+```
+
+
+
+```{r, include=FALSE}
+pathview_fc = function(pathway, file_suffix="") {
+  pathview(
+    gene_fc,
+    pathway.id = pathway,
+    limit = list(gene = 2, cpd = 1),
+    low = c(gene = "#0571b0", cpd = "blue"),
+    mid = c("grey", cpd = "grey"),
+    high = c(gene = "#ca0020", cpd = "yellow"),
+    bins = c(gene=20, cpd=20),
+    out.suffix = paste0("sigfc.pathview", file_suffix),
+    node.sum = "mean",
+  )
+  knitr::include_graphics(paste0(pathway, ".sigfc.pathview", file_suffix, ".png"))
+}
+```
+
+## Pathways showing log-fold change of all genes with FDR <= 0.01
+
+The color of each node shows the average fold change off all genes mapped to that node. 
+
+ * grey = no difference
+ * white = FDR > 0.01 or gene not found in single-cell data. 
+ * red = increased expression in malignant B cells 
+ * blue = increased expression in healthy B cells
+
+
+```{r, include=FALSE}
+de_res_filtered = de_res %>% filter(padj < .01)
+gene_stat = de_res$stat
+gene_fc = de_res_filtered$log2FoldChange
+names(gene_stat) = de_res$ENTREZID
+names(gene_fc) = de_res_filtered$ENTREZID
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, dpi=30}
+pathview_fc("hsa04010", ".fdr0.01")
+pathview_fc("hsa04310", ".fdr0.01")
+```

@@ -6,7 +6,7 @@ process DESEQ2 {
     tag { meta.id }
     publishDir "../../data/70_de_analysis/72_run_de/", mode: "copy"
 
-    cpus { meta['singlecell'] ? 11 : 4 } 
+    cpus { meta['singlecell'] ? 11 : 4 }
     conda "/data/scratch/sturm/conda/envs/2021-hairy-cell-leukemia-wolf-de2"
     errorStrategy 'finish'
 
@@ -52,12 +52,12 @@ workflow {
                 [singlecell: true, id: "sc_response_all_timepoints_P3_vs_long_term", c1: "short_term", c2: "long_term", sample_col: "cell_id", condition_col: "response"],
                 [singlecell: true, id: "sc_response_T0_P2_vs_long_term", c1: "short_term", c2: "long_term", sample_col: "cell_id", condition_col: "response"],
                 [singlecell: true, id: "sc_response_T0_P3_vs_long_term", c1: "short_term", c2: "long_term", sample_col: "cell_id", condition_col: "response"],
-                [singlecell: true, id: "sc_healthy_vs_malignant_b_cells", c1: "malignant", c2: "healthy", sample_col: "cell_id", condition_col: "cell_type", covariate_formula: "+patient+timepoint"],
+                [singlecell: true, id: "sc_healthy_vs_malignant_b_cells", c1: "malignant", c2: "healthy", sample_col: "cell_id", condition_col: "cell_type", covariate_formula: "+patient"],
                 [singlecell: true, id: "sc_fosb_b_cells", c1: "fos_malignant_b", c2: "malignant_b", sample_col: "cell_id", condition_col: "cell_phenotype", covariate_formula: "+patient+timepoint"],
             ]
         ).map {
             it -> [
-                it, 
+                it,
                 file(input_path + it['id'] + (it['singlecell'] ? "" : "_bulk_df") + ".tsv", checkIfExists: true),
                 file(input_path + it['id'] + "_samplesheet.csv", checkIfExists: true)
             ]

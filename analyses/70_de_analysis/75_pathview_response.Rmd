@@ -20,28 +20,12 @@ de_res = de_res %>% inner_join(entrez_ids, by=c("gene_id"="SYMBOL"))
 ```{r, include=FALSE}
 de_res_filtered = de_res %>% filter(padj < 1)
 gene_stat = de_res$stat
-gene_p = -log10(de_res$padj) * sign(de_res$log2FoldChange)
 gene_fc = de_res_filtered$log2FoldChange
 names(gene_stat) = de_res$ENTREZID
-names(gene_p) = de_res$ENTREZID
 names(gene_fc) = de_res_filtered$ENTREZID
 ```
 
 ```{r, include=FALSE}
-pathview_p = function(pathway, file_suffix="") {
-  pathview(
-    gene_p,
-    pathway.id = pathway,
-    limit = list(gene = 4, cpd = 1),
-    low = c(gene = "#0571b0", cpd = "blue"),
-    mid = c("grey", cpd = "grey"),
-    high = c(gene = "#ca0020", cpd = "yellow"),
-    bins = c(gene=20, cpd=20),
-    out.suffix = paste0("logfdr.pathview", file_suffix)
-  )
-  knitr::include_graphics(paste0(pathway, ".logfdr.pathview", file_suffix, ".png"))
-}
-
 pathview_fc = function(pathway, file_suffix="") {
   pathview(
     gene_fc,
@@ -51,13 +35,16 @@ pathview_fc = function(pathway, file_suffix="") {
     mid = c("grey", cpd = "grey"),
     high = c(gene = "#ca0020", cpd = "yellow"),
     bins = c(gene=20, cpd=20),
-    out.suffix = paste0("sigfc.pathview", file_suffix)
+    out.suffix = paste0("sigfc.pathview", file_suffix),
+    node.sum = "mean"
   )
   knitr::include_graphics(paste0(pathway, ".sigfc.pathview", file_suffix, ".png"))
 }
 ```
 
 ## Pathways showing log-fold change of all genes
+
+The color of each node shows the average fold change off all genes mapped to that node. 
 
  * Fold-change of all genes is shown independent of whether the difference is statistically significant or not
  * grey = no difference
@@ -66,9 +53,7 @@ pathview_fc = function(pathway, file_suffix="") {
  * blue = increased expression in long_term
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, dpi=30}
-# pathview_p("hsa04010")
 pathview_fc("hsa04010", ".all_genes")
-# pathview_p("hsa04310")
 pathview_fc("hsa04310", ".all_genes")
 ```
 
@@ -82,13 +67,10 @@ gene_stat = de_res$stat
 gene_p = -log10(de_res$padj) * sign(de_res$log2FoldChange)
 gene_fc = de_res_filtered$log2FoldChange
 names(gene_stat) = de_res$ENTREZID
-names(gene_p) = de_res$ENTREZID
 names(gene_fc) = de_res_filtered$ENTREZID
 ```
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, dpi=30}
-# pathview_p("hsa04010")
 pathview_fc("hsa04010", ".fdr0.1")
-# pathview_p("hsa04310")
 pathview_fc("hsa04310", ".fdr0.1")
 ```
