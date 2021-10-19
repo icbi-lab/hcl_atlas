@@ -227,8 +227,14 @@ sc.pl.dotplot(
 # ## Gene heatmap
 
 # %%
+tmp_adata  = adata.copy()
+tmp_adata.obs["patient_cell_type"] = [
+    f"malignant B {p}" if ct == "malignant B cell" else ct for p, ct in zip(adata.obs["patient"], adata.obs["cell_type"])
+]
+
+# %%
 sc.pl.heatmap(
-    adata,
+    tmp_adata,
     var_names="""CD27
 ITGAX
 BCL2
@@ -256,7 +262,21 @@ RHOA
 SYT1
 FGF2
 """.split(),
-    groupby="patient",
+    groupby="patient_cell_type",
+    swap_axes=True, figsize=(10, 8)
+)
+
+# %% [markdown]
+# ### Heatmap DE malignant vs. healthy
+
+# %%
+de_res = pd.read_csv("../../data/70_de_analysis/72_run_de/deseq2_res_sc_healthy_vs_malignant_b_cells/malignant_healthy_IHWallGenes.tsv", sep="\t")
+
+# %%
+sc.pl.heatmap(
+    tmp_adata,
+    var_names=de_res.loc[de_res["log2FoldChange"] > 0, :].sort_values("padj")["gene_id"][:30].values,
+    groupby="patient_cell_type",
     swap_axes=True, figsize=(10, 8)
 )
 
