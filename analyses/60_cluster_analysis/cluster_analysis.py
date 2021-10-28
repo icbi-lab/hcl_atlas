@@ -246,7 +246,7 @@ for pw, ax in zip(adata_pw.var.index, axes):
     sns.lineplot(
         x="cell_phenotype",
         data=progeny_by_sample_melt.query(f"pathway == '{pw}'"),
-        hue="paitent",
+        hue="patient",
         y="progeny_score",
         ax=ax,
     )

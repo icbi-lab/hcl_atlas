@@ -227,9 +227,10 @@ sc.pl.dotplot(
 # ## Gene heatmap
 
 # %%
-tmp_adata  = adata.copy()
+tmp_adata = adata.copy()
 tmp_adata.obs["patient_cell_type"] = [
-    f"malignant B {p}" if ct == "malignant B cell" else ct for p, ct in zip(adata.obs["patient"], adata.obs["cell_type"])
+    f"malignant B {p}" if ct == "malignant B cell" else ct
+    for p, ct in zip(adata.obs["patient"], adata.obs["cell_type"])
 ]
 
 # %%
@@ -263,21 +264,28 @@ SYT1
 FGF2
 """.split(),
     groupby="patient_cell_type",
-    swap_axes=True, figsize=(10, 8)
+    swap_axes=True,
+    figsize=(10, 8),
 )
 
 # %% [markdown]
 # ### Heatmap DE malignant vs. healthy
 
 # %%
-de_res = pd.read_csv("../../data/70_de_analysis/72_run_de/deseq2_res_sc_healthy_vs_malignant_b_cells/malignant_healthy_IHWallGenes.tsv", sep="\t")
+de_res = pd.read_csv(
+    "../../data/70_de_analysis/72_run_de/deseq2_res_sc_healthy_vs_malignant_b_cells/malignant_healthy_IHWallGenes.tsv",
+    sep="\t",
+)
 
 # %%
 sc.pl.heatmap(
     tmp_adata,
-    var_names=de_res.loc[de_res["log2FoldChange"] > 0, :].sort_values("padj")["gene_id"][:30].values,
+    var_names=de_res.loc[de_res["log2FoldChange"] > 0, :]
+    .sort_values("padj")["gene_id"][:30]
+    .values,
     groupby="patient_cell_type",
-    swap_axes=True, figsize=(10, 8)
+    swap_axes=True,
+    figsize=(10, 8),
 )
 
 # %% [markdown]
@@ -362,8 +370,78 @@ sc.pl.umap(
 # ### statistical tests for pathway differences between cell-types
 
 # %%
-pw_test_cell_type = rank_pw_groups_all(adata_pw, "cell_type").sort_values("pval")
-pw_test_cell_type
+progeny_df = adata.obsm["progeny"].join(adata.obs.loc[:, ["cell_type", "patient"]])
+progeny_by_sample = (
+    progeny_df.groupby(["cell_type", "patient"], observed=True)
+    .agg("mean")
+    .reset_index()
+    .sort_values("patient")
+)
+
+# %%
+progeny_by_sample_melt = progeny_by_sample.loc[
+    progeny_by_sample["cell_type"].isin(["healthy B cell", "malignant B cell"]), :
+].melt(
+    id_vars=["cell_type", "patient"],
+    var_name="pathway",
+    value_name="progeny_score",
+)
+progeny_by_sample_melt["cell_type"] = pd.Categorical(
+    progeny_by_sample_melt["cell_type"],
+    categories=["healthy B cell", "malignant B cell"],
+)
+
+# %%
+df_for_test = progeny_by_sample.drop("patient", axis="columns").set_index("cell_type")
+
+# %%
+_, pvals = scipy.stats.ttest_rel(
+    df_for_test.loc["healthy B cell", :], df_for_test.loc["malignant B cell", :], axis=0
+)
+pval_dict = {k: v for k, v in zip(df_for_test.columns, pvals)}
+
+# %%
+fig, axes = plt.subplots(4, 4, figsize=(4 * 3, 4 * 4), tight_layout=True)
+axes = axes.flatten()
+for pw, ax in zip(adata_pw.var.index, axes):
+    sns.stripplot(
+        x="cell_type",
+        data=progeny_by_sample_melt.query(f"pathway == '{pw}'"),
+        y="progeny_score",
+        ax=ax,
+        hue="patient",
+        size=10,
+        linewidth=2,
+    )
+    sns.lineplot(
+        x="cell_type",
+        data=progeny_by_sample_melt.query(f"pathway == '{pw}'"),
+        hue="patient",
+        y="progeny_score",
+        ax=ax,
+    )
+    sns.boxplot(
+        x="cell_type",
+        data=progeny_by_sample_melt.query(f"pathway == '{pw}'"),
+        y="progeny_score",
+        ax=ax,
+    )
+
+    ax.set_xlabel("")
+    ax.tick_params(axis="x", rotation=90, labelsize=10)
+    ax.legend().set_visible(False)
+    ax.set_ylabel(pw)
+    ax.set_title("unadj. p={:.2f}, t-test".format(pval_dict[pw]))
+axes[-1].set_visible(False)
+axes[-2].set_visible(False)
+axes[-3].legend().set_visible(True)
+axes[-3].legend(bbox_to_anchor=(1.1, 1.05))
+fig.tight_layout()
+plt.show()
+
+# %%
+# pw_test_cell_type = rank_pw_groups_all(adata_pw, "cell_type").sort_values("pval")
+# pw_test_cell_type
 
 # %% [markdown]
 # ## Pathway differences between short-term and long-term responders
