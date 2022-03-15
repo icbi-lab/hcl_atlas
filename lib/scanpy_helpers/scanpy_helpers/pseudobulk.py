@@ -79,6 +79,7 @@ def pseudobulk(
 
 def write_pseudobulk(pb, prefix):
     """Write pseudobulk samplesheet and expression in the form required for the deseq2icbi script"""
+    pb.obs.index = [f"sample_{i}" for i in pb.obs.index]
     pb.obs.index.name = "sample_id"
     pb.obs.to_csv(f"{prefix}_samplesheet.csv", index=True)
     expr_df = pd.DataFrame(

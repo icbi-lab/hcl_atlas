@@ -68,9 +68,13 @@ sh.pseudobulk.write_pseudobulk(
 # ## DE analysis of timepoints (pseudobulk, only P2-3)
 
 # %%
+tmp_adata = adata[adata.obs["patient"].isin(["P2", "P3"]), :]
+tmp_adata.obs["timepoint"] = ["pre-treatment" if t == "T0" else "post-treatment" for t in tmp_adata.obs["timepoint"]]
+
+# %%
 sh.pseudobulk.write_pseudobulk(
     sh.pseudobulk.pseudobulk(
-        adata[adata.obs["patient"].isin(["P2", "P3"]), :], groupby=["patient", "timepoint", "sex", "age"], layer="raw_counts"
+        tmp_adata, groupby=["patient", "timepoint", "sex", "age"], layer="raw_counts"
     ),
     f"{artifact_dir}/bulk_timepoints",
 )
@@ -86,5 +90,7 @@ sh.pseudobulk.write_pseudobulk(
     sh.pseudobulk.pseudobulk(
         adata_malignant_b, groupby=["patient", "cell_phenotype"], layer="raw_counts"
     ),
-    f"{artifact_dir}/fos_jun_vs_rest",
+    f"{artifact_dir}/bulk_fos_jun_vs_rest",
 )
+
+# %%
