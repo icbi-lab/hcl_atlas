@@ -5,6 +5,7 @@ import pandas as pd
 from operator import and_
 from functools import reduce
 import warnings
+from .util import _choose_mtx_rep
 
 
 def pseudobulk(
@@ -13,6 +14,8 @@ def pseudobulk(
     groupby: Union[str, Sequence[str]],
     aggr_fun=np.sum,
     min_obs=10,
+    layer=None,
+    use_raw=None,
 ) -> AnnData:
     """
     Calculate Pseudobulk of groups
@@ -38,6 +41,8 @@ def pseudobulk(
 
     combinations = adata.obs.loc[:, groupby].drop_duplicates()
 
+    X = _choose_mtx_rep(adata, use_raw, layer)
+
     # precompute masks
     masks = {}
     for col in groupby:
@@ -52,7 +57,7 @@ def pseudobulk(
         mask = reduce(and_, (masks[col][val] for col, val in zip(groupby, comb)))
         if np.sum(mask) < min_obs:
             continue
-        expr_row = aggr_fun(adata.X[mask, :], axis=0)
+        expr_row = aggr_fun(X[mask, :], axis=0)
         obs_row = comb._asdict()
         obs_row["n_obs"] = np.sum(mask)
         # convert matrix to array if required (happens when aggregating spares matrix)
@@ -70,3 +75,17 @@ def pseudobulk(
             var=adata.var,
             obs=pd.DataFrame.from_records(obs),
         )
+
+
+def write_pseudobulk(pb, prefix):
+    """Write pseudobulk samplesheet and expression in the form required for the deseq2icbi script"""
+    pb.obs.index.name = "sample_id"
+    pb.obs.to_csv(f"{prefix}_samplesheet.csv", index=True)
+    expr_df = pd.DataFrame(
+        pb.X.T,
+        columns=pb.obs_names,
+        index=pb.var_names,
+    )
+    expr_df.index.name = "gene_id"
+    expr_df.insert(0, "gene_name", expr_df.index)
+    expr_df.to_csv(f"{prefix}_bulk_df.tsv", sep="\t")
