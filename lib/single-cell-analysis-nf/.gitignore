@@ -1,0 +1,11 @@
+*.code-workspace
+.vscode
+.ipynb_checkpoints
+__pycache__
+*.pyo
+*.pyc
+sinfo-requirements.txt
+work
+.nextflow*
+null
+results
