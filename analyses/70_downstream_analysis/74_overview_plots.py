@@ -21,8 +21,12 @@ import scanpy as sc
 import scanpy_helpers as sh
 import matplotlib.pyplot as plt
 
+sc.settings.set_figure_params(vector_friendly=True, dpi=1200)
+
 # %%
-adata_malignant_b = sc.read_h5ad("../../data/40_cluster_analysis/adata_malignant_b_cells.h5ad")
+adata_malignant_b = sc.read_h5ad(
+    "../../data/40_cluster_analysis/adata_malignant_b_cells.h5ad"
+)
 
 # %%
 adata = sc.read_h5ad("../../data/30_merge_adata/adata_scvi.h5ad")
@@ -43,8 +47,20 @@ sh.colors.set_scale_anndata(adata, "response")
 with plt.rc_context({"figure.figsize": (7, 7), "figure.dpi": 300}):
     for basis in ["umap", "umap_uncorrected"]:
         for color in ["patient", "timepoint", "cell_type", "response"]:
-            fig = sc.pl.embedding(adata, color=color, frameon=False, basis=basis, size=7, return_fig=True)
-            fig.savefig(f"{artifact_dir}/overview_{basis}_{color}.pdf", bbox_inches="tight")
+            fig = sc.pl.embedding(
+                adata,
+                color=color,
+                frameon=False,
+                basis=basis,
+                size=7,
+                return_fig=True,
+                show=False,
+            )
+            fig.savefig(
+                f"{artifact_dir}/overview_{basis}_{color}.pdf",
+                bbox_inches="tight",
+                dpi=1200,
+            )
             fig.show()
 
 # %%
