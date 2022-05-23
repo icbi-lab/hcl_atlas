@@ -45,6 +45,24 @@ def plot_all_palettes():
 
 
 class COLORS:
+    timepoint = {"T0": "#edf8b1", "T1": "#7fcdbb", "T2": "#2c7fb8"}
+    # okabe palette
+    patient = {
+        "P1": "#E69F00",
+        "P2": "#56B4E9",
+        "P3": "#009E73",
+        "P4": "#0072B2",
+        "P5": "#D55E00",
+        "P6": "#CC79A7",
+    }
+    # Dark2
+    cell_type = {
+        "healthy B cell": "#1b9e77",
+        "malignant B cell": "#d95f02",
+        "malignant B cell (dividing)": "#e7298a",
+        "other": "#7570b3",
+    }
+    response = {"short_term": "#377eb8", "long_term": "#4daf4a"}
 
     # sex = {
     #     "male": "#80b1d3",
