@@ -25,8 +25,8 @@ process DESEQ2 {
     mkdir deseq2_res_${meta.id}
     runDESeq2_ICBI.R $samplesheet $expr \\
         --result_dir=deseq2_res_${meta.id} \\
-        --c1=${meta.c1} \\
-        --c2=${meta.c2} \\
+        --c1="${meta.c1}" \\
+        --c2="${meta.c2}" \\
         --sample_col=${meta.sample_col} \\
         --condition_col=${meta.condition_col} \\
         --gene_id_type=SYMBOL \\
@@ -48,6 +48,7 @@ workflow {
                 [singlecell: false, id: "bulk_response_t0", c1: "short_term", c2: "long_term", sample_col: "sample_id", condition_col: "response"],
                 [singlecell: false, id: "bulk_timepoints", c1: "post-treatment", c2: "pre-treatment", sample_col: "sample_id", condition_col: "timepoint", paired_grp: "patient"],
                 [singlecell: false, id: "bulk_fos_jun_vs_rest", c1: "fos_malignant_b", c2: "malignant_b", sample_col: "sample_id", condition_col: "cell_phenotype", paired_grp: "patient"],
+                [singlecell: false, id: "bulk_healthy_malignant", c1: "healthy_b_cell", c2: "malignant_b_cell", sample_col: "sample_id", condition_col: "cell_type", paired_grp: "patient"],
             ]
         ).map {
             it -> [

@@ -59,7 +59,9 @@ sh.pseudobulk.write_pseudobulk(
 # %%
 sh.pseudobulk.write_pseudobulk(
     sh.pseudobulk.pseudobulk(
-        adata[adata.obs["timepoint"] == "T0", :], groupby=["patient", "response", "sex", "age"], layer="raw_counts"
+        adata[adata.obs["timepoint"] == "T0", :],
+        groupby=["patient", "response", "sex", "age"],
+        layer="raw_counts",
     ),
     f"{artifact_dir}/bulk_response_t0",
 )
@@ -69,7 +71,10 @@ sh.pseudobulk.write_pseudobulk(
 
 # %%
 tmp_adata = adata[adata.obs["patient"].isin(["P2", "P3"]), :]
-tmp_adata.obs["timepoint"] = ["pre-treatment" if t == "T0" else "post-treatment" for t in tmp_adata.obs["timepoint"]]
+tmp_adata.obs["timepoint"] = [
+    "pre-treatment" if t == "T0" else "post-treatment"
+    for t in tmp_adata.obs["timepoint"]
+]
 
 # %%
 sh.pseudobulk.write_pseudobulk(
@@ -91,6 +96,25 @@ sh.pseudobulk.write_pseudobulk(
         adata_malignant_b, groupby=["patient", "cell_phenotype"], layer="raw_counts"
     ),
     f"{artifact_dir}/bulk_fos_jun_vs_rest",
+)
+
+# %% [markdown]
+# ## Comparison of healthy and malignant B cells
+
+# %%
+adata_healthy_malignant = adata_all[
+    adata_all.obs["cell_type"].isin(["malignant B cell", "healthy B cell"]), :
+].copy()
+adata_healthy_malignant.obs["cell_type"] = (
+    adata_healthy_malignant.obs["cell_type"].str.lower().str.replace(" ", "_")
+)
+sh.pseudobulk.write_pseudobulk(
+    sh.pseudobulk.pseudobulk(
+        adata_healthy_malignant,
+        groupby=["cell_type", "patient"],
+        layer="raw_counts",
+    ),
+    f"{artifact_dir}/bulk_healthy_malignant",
 )
 
 # %%
