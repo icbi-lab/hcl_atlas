@@ -4,3 +4,4 @@ twistd.pid
 .ipynb_checkpoints
 scvi_model
 rik_kernel*
+geckodriver*

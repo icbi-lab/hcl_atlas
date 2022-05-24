@@ -32,6 +32,7 @@ def plot_paired_fc(
     pvalue_col="padj",
     var_col="gene_id",
     threshold=0.1,
+    metric_name=None,
 ):
     """Plot fold changes as a bar chart with overlayed scatterplot to represent the variability between samples.
 
@@ -81,13 +82,13 @@ def plot_paired_fc(
     df.reset_index(drop=False, inplace=True)
 
     if metric == "diff":
-        metric_name = "mean score difference"
+        metric_name = "mean score difference" if metric_name is None else metric_name
         metric = _diff_metric
     elif metric == "log2_fc":
-        metric_name = "log2(FC)"
+        metric_name = "log2(FC)" if metric_name is None else metric_name
         metric = _log2_fc_metric
     else:
-        metric_name = "custom"
+        metric_name = "custom" if metric_name is None else metric_name
 
     df_fc = (
         df.sort_values([groupby, paired_by])
