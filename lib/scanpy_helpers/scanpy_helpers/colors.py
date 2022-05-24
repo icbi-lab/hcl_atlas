@@ -60,7 +60,8 @@ class COLORS:
         "healthy B cell": "#1b9e77",
         "malignant B cell": "#d95f02",
         "malignant B cell (dividing)": "#e7298a",
-        "other": "#7570b3",
+        "T cell": "#7570b3",
+        "Plasma cell": "#66a61e",
     }
     response = {"short_term": "#377eb8", "long_term": "#4daf4a"}
 

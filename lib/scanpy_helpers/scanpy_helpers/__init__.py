@@ -7,3 +7,4 @@ from . import pseudobulk
 from . import pairwise
 from . import colors
 from . import compare_groups
+from . import annotation
