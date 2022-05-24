@@ -38,6 +38,9 @@ adata = sc.read_h5ad("../../data/30_merge_adata/adata_scvi.h5ad")
 artifact_dir = "../../data/70_downstream_analyses/gene_expression"
 
 # %%
+# !mkdir -p {artifact_dir}
+
+# %%
 adata.obs.columns
 
 # %%
