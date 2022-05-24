@@ -24,6 +24,7 @@ import matplotlib.pyplot as plt
 import progeny
 import pandas as pd
 import scipy.stats
+import scanpy_helpers as sh
 
 sc.set_figure_params(figsize=(4, 4))
 
@@ -70,6 +71,49 @@ for patient in ["P1", "P2", "P3"]:
 # ## single panel
 
 # %%
-adata.obs["cell_phenotype"].value_counts(dropna=False)
+fractions_timepoint = sh.util.cell_type_fractions(
+    adata, ["patient", "timepoint", "cell_phenotype"], ["patient", "timepoint"]
+)
 
 # %%
+fractions_timepoint.to_csv(f"{artifact_dir}/fos_jun_fractions_per_timepoint.csv")
+
+# %%
+fractions_timepoint
+
+# %%
+sns.set_palette(sns.color_palette(sh.colors.COLORS.patient.values()))
+tmp_df = fractions_timepoint.loc[lambda x: x["cell_phenotype"] == "fos_malignant_b"]
+ax = sns.lineplot(
+    x="timepoint",
+    y="frac_cells",
+    data=tmp_df,
+    hue="patient",
+    legend=False,
+)
+sns.stripplot(
+    x="timepoint",
+    y="frac_cells",
+    data=tmp_df,
+    hue="patient",
+    linewidth=1,
+    ax=ax,
+    size=10,
+    jitter=False,
+    alpha=0.8,
+)
+ax.legend(bbox_to_anchor=(1.04, 1), loc="upper left")
+ax.set_ylabel("fraction FOS/JUN+ cells")
+ax.get_figure().savefig(f"{artifact_dir}/fos_jun_abundance.pdf")
+
+# %% [markdown]
+# ## fractions per patient
+
+# %%
+fractions_per_patient = sh.util.cell_type_fractions(adata, ["patient", "cell_phenotype"], ["patient"])
+
+# %%
+fractions_per_patient
+
+# %%
+fractions_timepoint.to_csv(f"{artifact_dir}/fos_jun_fractions_per_patient.csv")

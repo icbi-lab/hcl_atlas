@@ -5,6 +5,16 @@ import statsmodels.stats.multitest
 import numpy as np
 
 
+def cell_type_fractions(adata, groupby, groupby_frac):
+    return (
+        adata.obs.groupby(groupby, observed=True)
+        .size()
+        .reset_index(name="n_cells")
+        .groupby(groupby_frac)
+        .apply(lambda x: x.assign(frac_cells=x["n_cells"] / np.sum(x["n_cells"])))
+    ).sort_values(groupby)
+
+
 def log2_fc(
     df, mean_col="intercept", diff_col="coef", key_added="log2_fc", inplace=False
 ):

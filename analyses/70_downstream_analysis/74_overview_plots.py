@@ -84,4 +84,22 @@ fig = sc.pl.umap(
 )
 fig.savefig(f"{artifact_dir}/cell_type_markers_umap.pdf", dpi=600, bbox_inches="tight")
 
+# %% [markdown]
+# ## cell stats
+
+# %%
+sh.util.cell_type_fractions(
+    adata, ["patient", "timepoint", "cell_type"], ["patient", "timepoint"]
+).to_csv(f"{artifact_dir}/cell_type_fractions_patient_timepoint.csv")
+
+# %%
+sh.util.cell_type_fractions(
+    adata, ["patient", "cell_type"], ["patient"]
+).to_csv(f"{artifact_dir}/cell_type_fractions_patient.csv")
+
+# %%
+sh.util.cell_type_fractions(
+    adata, ["patient", "timepoint", "response"], ["patient", "response"]
+).sort_values(["patient", "response", "timepoint
+
 # %%
