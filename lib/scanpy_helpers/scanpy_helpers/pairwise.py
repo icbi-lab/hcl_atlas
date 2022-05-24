@@ -174,6 +174,7 @@ def plot_paired(
     pvalues: Sequence[float] = None,
     pvalue_template="unadj. p={:.2f}, t-test",
     boxplot_kwargs={},
+    rotate_x=0,
 ):
     """
     Pairwise expression plot.
@@ -228,25 +229,25 @@ def plot_paired(
         has_matching_samples = df.groupby(paired_by).apply(
             lambda x: sorted(x[groupby]) == sorted(groups)
         )
-        has_matching_samples = has_matching_samples.index[has_matching_samples].values
-        removed_samples = adata.obs[paired_by].nunique() - len(has_matching_samples)
-        if removed_samples:
-            warnings.warn(f"{removed_samples} unpaired samples removed")
+        # has_matching_samples = has_matching_samples.index[has_matching_samples].values
+        # removed_samples = adata.obs[paired_by].nunique() - len(has_matching_samples)
+        # if removed_samples:
+        #     warnings.warn(f"{removed_samples} unpaired samples removed")
 
-        # perform statistics (paired ttest)
-        if pvalues is None:
-            _, pvalues = scipy.stats.ttest_rel(
-                df.loc[
-                    df[groupby] == groups[0],
-                    var_names,
-                ].loc[has_matching_samples, :],
-                df.loc[
-                    df[groupby] == groups[1],
-                    var_names,
-                ].loc[has_matching_samples],
-            )
+        # # perform statistics (paired ttest)
+        # if pvalues is None:
+        #     _, pvalues = scipy.stats.ttest_rel(
+        #         df.loc[
+        #             df[groupby] == groups[0],
+        #             var_names,
+        #         ].loc[has_matching_samples, :],
+        #         df.loc[
+        #             df[groupby] == groups[1],
+        #             var_names,
+        #         ].loc[has_matching_samples],
+        #     )
 
-        df = df.loc[has_matching_samples, :]
+        # df = df.loc[has_matching_samples, :]
         df.reset_index(drop=False, inplace=True)
 
     else:
@@ -316,7 +317,7 @@ def plot_paired(
             ax.set_xlabel("")
             ax.tick_params(
                 axis="x",
-                # rotation=0,
+                rotation=rotate_x,
                 labelsize=15,
             )
             ax.legend().set_visible(False)

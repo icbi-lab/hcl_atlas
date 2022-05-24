@@ -3,7 +3,7 @@
 __version__ = "0.1.dev"
 
 from . import util
-from . import lm
 from . import pseudobulk
 from . import pairwise
 from . import colors
+from . import compare_groups
