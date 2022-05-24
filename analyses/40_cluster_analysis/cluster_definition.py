@@ -25,8 +25,11 @@ import scanpy_helpers as sh
 sc.set_figure_params(figsize=(4, 4))
 
 # %%
-adata = sc.read_h5ad("../../data/30_merge_adata/adata_scvi.h5ad")
+adata = sc.read_h5ad("../../data/30_merge_adata/adata_scvi_annotated.h5ad")
 artifact_dir = "../../data/40_cluster_analysis"
+
+# %%
+# !mkdir -p {artifact_dir}
 
 # %%
 sh.colors.set_scale_anndata(adata, "patient")
@@ -88,7 +91,7 @@ for tmp_patient, tmp_adata in patient_adatas.items():
 
 # %%
 # for each patient, the clusters that are FOS+ JUN+
-fos_annotation = {"P1": [6], "P2": [6, 2], "P3": [4], "P4": [0], "P5": [6], "P6": [4]}
+fos_annotation = {"P1": [5], "P2": [6, 1], "P3": [6], "P4": [0], "P5": [4], "P6": [3]}
 
 # %%
 adata.obs["cell_phenotype"] = "malignant_b"
@@ -101,7 +104,12 @@ for tmp_patient, tmp_adata in patient_adatas.items():
     ] = "fos_malignant_b"
 
 # %%
-sc.pl.embedding(adata, "umap_uncorrected", color=["cell_phenotype", "FOSB"])
+fig = sc.pl.embedding(adata, "umap_uncorrected", color=["cell_phenotype"], return_fig=True, frameon=False)
+fig.savefig(f"{artifact_dir}/umap_cell_phenotype_uncorrected.pdf", bbox_inches="tight", dpi=1200)
+
+# %%
+fig = sc.pl.embedding(adata, "umap", color=["cell_phenotype"], return_fig=True, frameon=False)
+fig.savefig(f"{artifact_dir}/umap_cell_phenotype.pdf", bbox_inches="tight", dpi=1200)
 
 # %%
 adata.write_h5ad(f"{artifact_dir}/adata_malignant_b_cells.h5ad")

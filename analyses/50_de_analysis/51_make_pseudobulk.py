@@ -26,11 +26,14 @@ import itertools
 import scanpy_helpers as sh
 
 # %%
-adata_all = sc.read_h5ad("../../data/30_merge_adata/adata_scvi.h5ad")
+adata_all = sc.read_h5ad("../../data/30_merge_adata/adata_scvi_annotated.h5ad")
 adata_malignant_b = sc.read_h5ad(
     "../../data/40_cluster_analysis/adata_malignant_b_cells.h5ad"
 )
 artifact_dir = "../../data/50_de_analysis/pseudobulk"
+
+# %%
+# !mkdir -p {artifact_dir}
 
 # %%
 adata = adata_all[adata_all.obs["cell_type"] == "malignant B cell", :].copy()
