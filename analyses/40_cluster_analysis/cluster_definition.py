@@ -20,12 +20,19 @@ import matplotlib.pyplot as plt
 import progeny
 import pandas as pd
 import scipy.stats
+import scanpy_helpers as sh
 
 sc.set_figure_params(figsize=(4, 4))
 
 # %%
 adata = sc.read_h5ad("../../data/30_merge_adata/adata_scvi.h5ad")
 artifact_dir = "../../data/40_cluster_analysis"
+
+# %%
+sh.colors.set_scale_anndata(adata, "patient")
+sh.colors.set_scale_anndata(adata, "timepoint")
+sh.colors.set_scale_anndata(adata, "cell_type")
+sh.colors.set_scale_anndata(adata, "response")
 
 # %%
 sc.pl.umap(adata, color="cell_type")
@@ -49,7 +56,8 @@ for patient in adata.obs["patient"].sort_values().unique():
     sc.pp.neighbors(tmp_adata)
     sc.tl.umap(tmp_adata)
     sc.tl.leiden(tmp_adata, resolution=1)
-    sc.pl.umap(tmp_adata, color=["patient", "timepoint", "leiden"], ncols=4)
+    fig = sc.pl.umap(tmp_adata, color=["patient", "timepoint", "leiden"], ncols=4, return_fig=True, frameon=False)
+    fig.savefig(f"{artifact_dir}/umap_{patient}.pdf", bbox_inches="tight", dpi=1200)
     patient_adatas[patient] = tmp_adata
 
 # %%
@@ -66,16 +74,12 @@ for tmp_adata in patient_adatas.values():
 # %%
 for tmp_patient, tmp_adata in patient_adatas.items():
     print(tmp_patient)
-    sc.pl.rank_genes_groups_dotplot(tmp_adata, n_genes=5, title=tmp_patient)
+    fig = sc.pl.rank_genes_groups_dotplot(tmp_adata, n_genes=5, title=tmp_patient, return_fig=True)
+    fig.savefig(f"{artifact_dir}/dotplot_{tmp_patient}.pdf", bbox_inches="tight")
 
 # %%
-for tmp_patient in ["P1", "P2", "P3"]:
-    tmp_adata = patient_adatas[tmp_patient]
-    sc.tl.rank_genes_groups(tmp_adata, method="wilcoxon", groupby="timepoint")
-    sc.pl.rank_genes_groups_dotplot(tmp_adata, n_genes=10, title=tmp_patient)
-
-# %%
-sc.pl.embedding(adata, "umap_uncorrected", color=["DUSP1", "FOSB", "JUN"])
+fig = sc.pl.embedding(adata, "umap_uncorrected", color=["DUSP1", "FOSB", "JUN"], frameon=False, return_fig=True)
+fig.savefig(f"{artifact_dir}/umap_fos_dusp_jun_expression.pdf", bbox_inches="tight", dpi=1200)
 
 # %%
 for tmp_patient, tmp_adata in patient_adatas.items():
