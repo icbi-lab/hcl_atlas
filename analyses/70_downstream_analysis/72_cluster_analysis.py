@@ -66,4 +66,10 @@ for patient in ["P1", "P2", "P3"]:
     fig.savefig(f"{artifact_dir}/cluster_abundance_{patient}.pdf", bbox_inches="tight")
     plt.show()
 
+# %% [markdown]
+# ## single panel
+
+# %%
+adata.obs["cell_phenotype"].value_counts(dropna=False)
+
 # %%

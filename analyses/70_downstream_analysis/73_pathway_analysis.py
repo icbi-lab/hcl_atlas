@@ -29,7 +29,7 @@ import scanpy_helpers as sh
 sc.set_figure_params(figsize=(4, 4))
 
 # %%
-adata = sc.read_h5ad("../../data/30_merge_adata/adata_scvi.h5ad")
+adata = sc.read_h5ad("../../data/30_merge_adata/adata_scvi_annotated.h5ad")
 
 # %%
 adata_malignant_b = sc.read_h5ad(
@@ -151,6 +151,9 @@ ch.save(f"{artifact_dir}/progeny_healthy_vs_malignant_b_fold_change_bar_chart.sv
 ch.display()
 
 # %%
+res
+
+# %%
 sns.set_palette(sns.color_palette(sh.colors.COLORS.patient.values()))
 fig = sh.pairwise.plot_paired(
     pb_pw,
@@ -158,7 +161,7 @@ fig = sh.pairwise.plot_paired(
     paired_by="patient",
     var_names=res["variable"].tolist(),
     ylabel="PROGENy score",
-    pvalues=res["pvalue"].tolist(),
+    pvalues=res["fdr"].tolist(),
     pvalue_template="FDR={:.3f}",
     boxplot_kwargs={"color": "white"},
     panel_size=(3, 4.5),
@@ -257,6 +260,7 @@ pb_pw_malignant_b.obs["cell_phenotype"] = pd.Categorical(
 )
 
 # %%
+pb_pw_malignant_b._sanitize()
 sc.tl.pca(pb_pw_malignant_b)
 sc.tl.dendrogram(
     pb_pw_malignant_b,
@@ -331,7 +335,7 @@ fig = sh.pairwise.plot_paired(
     paired_by="patient",
     var_names=res["variable"].tolist(),
     ylabel="PROGENy score",
-    pvalues=res["pvalue"].tolist(),
+    pvalues=res["fdr"].tolist(),
     pvalue_template="FDR={:.3f}",
     boxplot_kwargs={"color": "white"},
     panel_size=(3, 4.5),

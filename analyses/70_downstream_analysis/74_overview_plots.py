@@ -20,16 +20,12 @@
 import scanpy as sc
 import scanpy_helpers as sh
 import matplotlib.pyplot as plt
+import itertools
 
 sc.settings.set_figure_params(vector_friendly=True, dpi=1200)
 
 # %%
-adata_malignant_b = sc.read_h5ad(
-    "../../data/40_cluster_analysis/adata_malignant_b_cells.h5ad"
-)
-
-# %%
-adata = sc.read_h5ad("../../data/30_merge_adata/adata_scvi.h5ad")
+adata = sc.read_h5ad("../../data/30_merge_adata/adata_scvi_annotated.h5ad")
 
 # %%
 artifact_dir = "../../data/70_downstream_analyses/overview_plots"
@@ -43,7 +39,7 @@ sh.colors.set_scale_anndata(adata, "timepoint")
 sh.colors.set_scale_anndata(adata, "cell_type")
 sh.colors.set_scale_anndata(adata, "response")
 
-# %%
+# %% tags=[]
 with plt.rc_context({"figure.figsize": (7, 7), "figure.dpi": 300}):
     for basis in ["umap", "umap_uncorrected"]:
         for color in ["patient", "timepoint", "cell_type", "response"]:
@@ -62,5 +58,30 @@ with plt.rc_context({"figure.figsize": (7, 7), "figure.dpi": 300}):
                 dpi=1200,
             )
             fig.show()
+
+# %% [markdown]
+# ## Marker genes
+
+# %%
+marker_genes = {
+    "T cell": ["CD3E"],
+    "dividing cells": ["CDK1"],
+    "B lineage": ["CD79A"],
+    "B cell healthy": ["FAM129C"],
+    "B cell malignant": ["FLT3"],
+    "Plasma cell": ["MZB1", "SDC1"],
+}
+
+# %%
+fig = sc.pl.dotplot(adata, var_names=marker_genes, groupby="cell_type", return_fig=True)
+fig.savefig(f"{artifact_dir}/cell_type_markers_dotplot.pdf", bbox_inches="tight")
+
+# %%
+fig = sc.pl.umap(
+    adata,
+    color=list(itertools.chain.from_iterable(marker_genes.values())),
+    return_fig=True,
+)
+fig.savefig(f"{artifact_dir}/cell_type_markers_umap.pdf", dpi=600, bbox_inches="tight")
 
 # %%

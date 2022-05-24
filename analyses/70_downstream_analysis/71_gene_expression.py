@@ -34,7 +34,7 @@ sc.set_figure_params(figsize=(5, 5))
 # ## Load data
 
 # %%
-adata = sc.read_h5ad("../../data/30_merge_adata/adata_scvi.h5ad")
+adata = sc.read_h5ad("../../data/30_merge_adata/adata_scvi_annotated.h5ad")
 artifact_dir = "../../data/70_downstream_analyses/gene_expression"
 
 # %%
