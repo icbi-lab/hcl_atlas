@@ -631,7 +631,7 @@ ch = sh.pairwise.plot_paired_fc(
     var_col="variable",
     swap_axes=True,
 )
-ch.save(f"{artifact_dir}/gobp_wnt_malignant_b_vs_fos_malignant_b_barchart.pdf")
+ch.save(f"{artifact_dir}/gobp_wnt_malignant_b_vs_fos_malignant_b_barchart.svg")
 ch.display()
 
 # %%
@@ -649,7 +649,7 @@ ch = sh.pairwise.plot_paired_fc(
     var_col="variable",
     swap_axes=True,
 )
-ch.save(f"{artifact_dir}/gobp_mapk_malignant_b_vs_fos_malignant_b_barchart.pdf")
+ch.save(f"{artifact_dir}/gobp_mapk_malignant_b_vs_fos_malignant_b_barchart.svg")
 ch.display()
 
 # %%
