@@ -33,6 +33,7 @@ def plot_paired_fc(
     var_col="gene_id",
     threshold=0.1,
     metric_name=None,
+    swap_axes=False,
 ):
     """Plot fold changes as a bar chart with overlayed scatterplot to represent the variability between samples.
 
@@ -132,11 +133,16 @@ def plot_paired_fc(
     )
     domain = np.max(np.abs([np.min(df_fc_melt["mean"]), np.max(df_fc_melt["mean"])]))
 
+    x1_ = alt.X("variable", sort=order)
+    y1_ = "mean"
+    x2_ = alt.X("variable", sort=order, axis=alt.Axis(labelLimit=500, title=""))
+    y2_ = alt.Y("value", title=metric_name)
+
     return alt.Chart(
         df_fc_melt.loc[:, ["variable", "mean"]].drop_duplicates()
     ).mark_bar().encode(
-        x=alt.X("variable", sort=order),
-        y="mean",
+        x=(x1_ if not swap_axes else y1_),
+        y=(y1_ if not swap_axes else x1_),
         color=alt.Color(
             "mean",
             scale=alt.Scale(
@@ -148,8 +154,8 @@ def plot_paired_fc(
     ) + alt.Chart(
         df_fc_melt
     ).mark_circle().encode(
-        x=alt.X("variable", sort=order),
-        y=alt.Y("value", title=metric_name),
+        x=(x2_ if not swap_axes else y2_),
+        y=(y2_ if not swap_axes else x2_),
         color=alt.Color(
             "significance",
             scale=alt.Scale(range=["grey", "black"], domain=["n.s.", sig_str]),

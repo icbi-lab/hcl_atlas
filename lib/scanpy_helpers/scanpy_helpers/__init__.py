@@ -8,3 +8,4 @@ from . import pairwise
 from . import colors
 from . import compare_groups
 from . import annotation
+from . import signatures

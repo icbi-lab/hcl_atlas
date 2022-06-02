@@ -25,6 +25,8 @@ import progeny
 import pandas as pd
 import scipy.stats
 import scanpy_helpers as sh
+import itertools
+from tqdm.auto import tqdm
 
 sc.set_figure_params(figsize=(4, 4))
 
@@ -62,7 +64,7 @@ progeny.run(
 )
 
 # %% [markdown]
-# # Progeny of FOS+ cluster vs rest
+# ## healthy B vs malignant B
 
 # %%
 adata_pw = progeny.extract(adata)
@@ -324,7 +326,9 @@ ch = sh.pairwise.plot_paired_fc(
     pvalue_col="fdr",
     var_col="variable",
 )
-ch.save(f"{artifact_dir}/progeny_malignant_b_vs_fos_malignant_b_fold_change_barchart.svg")
+ch.save(
+    f"{artifact_dir}/progeny_malignant_b_vs_fos_malignant_b_fold_change_barchart.svg"
+)
 ch.display()
 
 # %%
@@ -340,8 +344,312 @@ fig = sh.pairwise.plot_paired(
     boxplot_kwargs={"color": "white"},
     panel_size=(3, 4.5),
     rotate_x=90,
-    return_fig=True
+    return_fig=True,
 )
-fig.savefig(f"{artifact_dir}/progeny_malignant_b_vs_fos_malignant_b_paired_boxplot.pdf", bbox_inches="tight")
+fig.savefig(
+    f"{artifact_dir}/progeny_malignant_b_vs_fos_malignant_b_paired_boxplot.pdf",
+    bbox_inches="tight",
+)
+
+# %% [markdown]
+# # MSigDB pathways
+# Analysing subpathways of WNT and MAPK
+
+# %%
+signatures = dict(
+    **sh.signatures.read_gmt("../../tables/c2.all.v7.5.1.symbols.gmt"),
+    **sh.signatures.read_gmt("../../tables/c5.all.v7.5.1.symbols.gmt")
+)
+
+# %%
+selected_wnt_pathways = [
+    "GOBP_REGULATION_OF_WNT_SIGNALING_PATHWAY",
+    "GOBP_POSITIVE_REGULATION_OF_WNT_SIGNALING_PATHWAY",
+    "GOBP_NEGATIVE_REGULATION_OF_WNT_SIGNALING_PATHWAY",
+    "GOBP_REGULATION_OF_CANONICAL_WNT_SIGNALING_PATHWAY",
+    "GOBP_POSITIVE_REGULATION_OF_CANONICAL_WNT_SIGNALING_PATHWAY",
+    "GOBP_NEGATIVE_REGULATION_OF_CANONICAL_WNT_SIGNALING_PATHWAY",
+    "GOBP_REGULATION_OF_NON_CANONICAL_WNT_SIGNALING_PATHWAY",
+    "GOBP_POSITIVE_REGULATION_OF_NON_CANONICAL_WNT_SIGNALING_PATHWAY",
+    "GOBP_NEGATIVE_REGULATION_OF_NON_CANONICAL_WNT_SIGNALING_PATHWAY",
+]
+
+# %%
+wnt_signatures = {
+    s: g for s, g in signatures.items() if "wnt" in s.lower() and "GOBP_" in s
+}
+mapk_signatures = {
+    s: g for s, g in signatures.items() if "mapk" in s.lower() and "GOBP_" in s
+}
+
+# %%
+all_signatures = {**wnt_signatures, **mapk_signatures}
+
+# %%
+for signature, genes in tqdm(all_signatures.items()):
+    sc.tl.score_genes(adata, genes, score_name=signature)
+
+# %%
+adata_pw2 = sc.AnnData(
+    adata.obs.loc[:, all_signatures.keys()],
+    obs=adata.obs.drop(columns=all_signatures.keys()),
+)
+
+# %%
+pb_pw2 = sh.pseudobulk.pseudobulk(
+    adata_pw2[
+        adata_pw2.obs["cell_type"].isin(["malignant B cell", "healthy B cell"]), :
+    ],
+    aggr_fun=np.mean,
+    groupby=["patient", "cell_type"],
+)
+pb_pw2.obs["cell_type"] = pb_pw2.obs["cell_type"].str.replace(" cell", "")
+
+# %%
+pb_pw2._sanitize()
+
+# %%
+fig = sc.pl.matrixplot(
+    pb_pw2,
+    var_names=selected_wnt_pathways,
+    groupby=["cell_type", "patient"],
+    cmap="bwr",
+    swap_axes=True,
+    dendrogram=False,
+    return_fig=True,
+    vmax=0.1,
+    vmin=-0.1,
+)
+fig.savefig(
+    f"{artifact_dir}/gobp_wnt_healthy_vs_malignant_heatmap.pdf",
+    bbox_inches="tight",
+)
+
+# %%
+res = (
+    sh.compare_groups.lm.test_lm(
+        pb_pw2,
+        "~ C(cell_type, Treatment('healthy B')) + patient",
+        groupby="cell_type",
+        contrasts="Treatment('healthy B')",
+    )
+    .pipe(sh.util.fdr_correction)
+    .sort_values("fdr")
+)
+
+# %%
+tmp_res = res.loc[lambda x: x["variable"].isin(selected_wnt_pathways)].pipe(
+    sh.util.fdr_correction
+)
+ch = sh.pairwise.plot_paired_fc(
+    pb_pw2,
+    groupby="cell_type",
+    paired_by="patient",
+    metric="diff",
+    var_names=selected_wnt_pathways,
+    de_res_df=tmp_res,
+    pvalue_col="fdr",
+    var_col="variable",
+    swap_axes=True,
+)
+ch.save(f"{artifact_dir}/gobp_wnt_healthy_vs_malignant_barchart.svg")
+ch.display()
+
+# %%
+fig = sc.pl.matrixplot(
+    pb_pw2,
+    var_names=list(mapk_signatures.keys()),
+    groupby=["cell_type", "patient"],
+    cmap="bwr",
+    swap_axes=True,
+    dendrogram=False,
+    return_fig=True,
+    vmin=-0.1,
+    vmax=0.1,
+)
+fig.savefig(
+    f"{artifact_dir}/gobp_mapk_healthy_vs_malignant_heatmap.pdf",
+    bbox_inches="tight",
+)
+
+# %%
+tmp_res = res.loc[lambda x: x["variable"].isin(mapk_signatures.keys())].pipe(
+    sh.util.fdr_correction
+)
+ch = sh.pairwise.plot_paired_fc(
+    pb_pw2,
+    groupby="cell_type",
+    paired_by="patient",
+    metric="diff",
+    var_names=list(mapk_signatures.keys()),
+    de_res_df=tmp_res,
+    pvalue_col="fdr",
+    var_col="variable",
+    swap_axes=True,
+)
+ch.save(f"{artifact_dir}/gobp_mapk_healthy_vs_malignant_barchart.svg")
+ch.display()
+
+# %% [markdown]
+# ## SR vs LR T0
+
+# %%
+pb_pw_sr_lr2 = sh.pseudobulk.pseudobulk(
+    adata_pw2[
+        (adata_pw2.obs["timepoint"] == "T0")
+        & (adata_pw2.obs["cell_type"] == "malignant B cell"),
+        :,
+    ],
+    groupby=["patient", "response"],
+    aggr_fun=np.mean,
+)
+
+# %%
+pb_pw_sr_lr2.obs
+
+# %%
+pb_pw_sr_lr2.obs["patient"] = pb_pw_sr_lr2.obs["patient"].astype("category")
+
+# %%
+fig = sc.pl.matrixplot(
+    pb_pw_sr_lr2,
+    var_names=selected_wnt_pathways,
+    groupby=["patient", "response"],
+    cmap="bwr",
+    swap_axes=True,
+    dendrogram=False,
+    return_fig=True,
+    vmax=0.1,
+    vmin=-0.1,
+)
+fig.savefig(
+    f"{artifact_dir}/gobp_wnt_long_term_short_term_t0_heatmap.pdf",
+    bbox_inches="tight",
+)
+
+# %%
+fig = sc.pl.matrixplot(
+    pb_pw_sr_lr2,
+    var_names=list(mapk_signatures.keys()),
+    groupby=["patient", "response"],
+    cmap="bwr",
+    swap_axes=True,
+    dendrogram=False,
+    return_fig=True,
+    vmax=0.1,
+    vmin=-0.1,
+)
+fig.savefig(
+    f"{artifact_dir}/gobp_mapk_long_term_short_term_t0_heatmap.pdf",
+    bbox_inches="tight",
+)
+
+# %% [markdown]
+# ## malignant B vs Fos malignant B
+
+# %%
+for signature, genes in tqdm(all_signatures.items()):
+    sc.tl.score_genes(adata_malignant_b, genes, score_name=signature)
+
+# %%
+adata_malignant_b_pw2 = sc.AnnData(
+    adata_malignant_b.obs.loc[:, all_signatures.keys()],
+    obs=adata_malignant_b.obs.drop(columns=all_signatures.keys()),
+)
+
+# %%
+pb_pw_malignant_b2 = sh.pseudobulk.pseudobulk(
+    adata_malignant_b_pw2,
+    aggr_fun=np.mean,
+    groupby=["patient", "cell_phenotype"],
+)
+
+# %%
+pb_pw_malignant_b2.obs["cell_phenotype"] = pd.Categorical(
+    pb_pw_malignant_b2.obs["cell_phenotype"],
+    categories=["malignant_b", "fos_malignant_b"],
+)
+
+# %%
+fig = sc.pl.matrixplot(
+    pb_pw_malignant_b2,
+    var_names=selected_wnt_pathways,
+    groupby=["cell_phenotype", "patient"],
+    cmap="bwr",
+    swap_axes=True,
+    dendrogram=False,
+    vmin=-0.05,
+    vmax=0.05,
+    return_fig=True,
+)
+fig.savefig(
+    f"{artifact_dir}/gobp_wnt_malignant_b_vs_fos_malignant_b_heatmap.pdf",
+    bbox_inches="tight",
+)
+
+# %%
+fig = sc.pl.matrixplot(
+    pb_pw_malignant_b2,
+    var_names=list(mapk_signatures.keys()),
+    groupby=["cell_phenotype", "patient"],
+    cmap="bwr",
+    swap_axes=True,
+    dendrogram=False,
+    vmin=-0.1,
+    vmax=0.1,
+    return_fig=True,
+)
+fig.savefig(
+    f"{artifact_dir}/gobp_mapk_malignant_b_vs_fos_malignant_b_heatmap.pdf",
+    bbox_inches="tight",
+)
+
+# %%
+res = (
+    sh.compare_groups.lm.test_lm(
+        pb_pw_malignant_b2,
+        "~ C(cell_phenotype, Treatment('malignant_b')) + patient",
+        groupby="cell_phenotype",
+        contrasts="Treatment('malignant_b')",
+    )
+    .pipe(sh.util.fdr_correction)
+    .sort_values("fdr")
+)
+
+# %%
+tmp_res = res.loc[lambda x: x["variable"].isin(selected_wnt_pathways)].pipe(
+    sh.util.fdr_correction
+)
+ch = sh.pairwise.plot_paired_fc(
+    pb_pw_malignant_b2,
+    groupby="cell_phenotype",
+    paired_by="patient",
+    metric="diff",
+    var_names=selected_wnt_pathways,
+    de_res_df=tmp_res,
+    pvalue_col="fdr",
+    var_col="variable",
+    swap_axes=True,
+)
+ch.save(f"{artifact_dir}/gobp_wnt_malignant_b_vs_fos_malignant_b_barchart.pdf")
+ch.display()
+
+# %%
+tmp_res = res.loc[lambda x: x["variable"].isin(mapk_signatures.keys())].pipe(
+    sh.util.fdr_correction
+)
+ch = sh.pairwise.plot_paired_fc(
+    pb_pw_malignant_b2,
+    groupby="cell_phenotype",
+    paired_by="patient",
+    metric="diff",
+    var_names=list(mapk_signatures.keys()),
+    de_res_df=tmp_res,
+    pvalue_col="fdr",
+    var_col="variable",
+    swap_axes=True,
+)
+ch.save(f"{artifact_dir}/gobp_mapk_malignant_b_vs_fos_malignant_b_barchart.pdf")
+ch.display()
 
 # %%

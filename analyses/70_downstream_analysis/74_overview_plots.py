@@ -99,7 +99,7 @@ sh.util.cell_type_fractions(
 
 # %%
 sh.util.cell_type_fractions(
-    adata, ["patient", "timepoint", "response"], ["patient", "response"]
-).sort_values(["patient", "response", "timepoint
+    adata, ["patient", "response", "timepoint"], ["patient", "response"]
+).to_csv(f"{artifact_dir}/timepoint_fractions_patient.csv")
 
 # %%

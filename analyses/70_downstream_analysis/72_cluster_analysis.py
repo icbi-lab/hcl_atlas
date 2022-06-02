@@ -104,7 +104,7 @@ sns.stripplot(
 )
 ax.legend(bbox_to_anchor=(1.04, 1), loc="upper left")
 ax.set_ylabel("fraction FOS/JUN+ cells")
-ax.get_figure().savefig(f"{artifact_dir}/fos_jun_abundance.pdf")
+ax.get_figure().savefig(f"{artifact_dir}/fos_jun_abundance.pdf", bbox_inches="tight")
 
 # %% [markdown]
 # ## fractions per patient
