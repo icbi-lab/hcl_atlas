@@ -85,6 +85,9 @@ fig = sc.pl.umap(
 fig.savefig(f"{artifact_dir}/cell_type_markers_umap.pdf", dpi=600, bbox_inches="tight")
 
 # %% [markdown]
+# ## Marker genes 
+
+# %% [markdown]
 # ## cell stats
 
 # %%
