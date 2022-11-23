@@ -117,6 +117,27 @@ fig.savefig(f"{artifact_dir}/healthy_malignant_b_cells_pseudobulk_zscore_heatmap
 top_genes
 
 # %%
+custom_genes = sorted("""
+    IL1R2 HLA-DRB1 HLA-DQA1 S100A4 GAS7 TACC1 CKLF HLA-DRA PCDH9 HLA-DRB5
+    HOPX ANXA1 DUSP6 RGCC HLA-DQB1 IL10RA TPP1 SDC3 SIX3 SORL1 RFTN1 GDI2 
+    LAPTM5 IL2RA MPEG1 MTSS1 RGS13 LBH AICDA
+""".split())
+
+# %%
+fig = sc.pl.matrixplot(
+    pb_b_cells,
+    var_names=custom_genes,
+    groupby=["cell_type", "patient"],
+    cmap="bwr",
+    vmin=-2,
+    vmax=2,
+    layer="z_scores",
+    return_fig=True,
+    swap_axes=True
+)
+fig.savefig(f"{artifact_dir}/healthy_malignant_b_cells_pseudobulk_zscore_heatmap_custom_genes.pdf", bbox_inches="tight")
+
+# %%
 ch = sh.pairwise.plot_paired_fc(
     pb_b_cells[:, top_genes["gene_id"]],
     groupby="cell_type",

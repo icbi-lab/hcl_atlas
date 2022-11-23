@@ -22,7 +22,7 @@ import scanpy_helpers as sh
 import matplotlib.pyplot as plt
 import itertools
 
-sc.settings.set_figure_params(vector_friendly=True, dpi=1200)
+sc.settings.set_figure_params(vector_friendly=True, dpi=150)
 
 # %%
 adata = sc.read_h5ad("../../data/30_merge_adata/adata_scvi_annotated.h5ad")
@@ -40,7 +40,7 @@ sh.colors.set_scale_anndata(adata, "cell_type")
 sh.colors.set_scale_anndata(adata, "response")
 
 # %% tags=[]
-with plt.rc_context({"figure.figsize": (7, 7), "figure.dpi": 300}):
+with plt.rc_context({"figure.figsize": (7, 7), "figure.dpi": 200}):
     for basis in ["umap", "umap_uncorrected"]:
         for color in ["patient", "timepoint", "cell_type", "response"]:
             fig = sc.pl.embedding(
@@ -74,7 +74,9 @@ marker_genes = {
 
 # %%
 fig = sc.pl.dotplot(adata, var_names=marker_genes, groupby="cell_type", return_fig=True)
-fig.savefig(f"{artifact_dir}/cell_type_markers_dotplot.pdf", bbox_inches="tight")
+fig.savefig(
+    f"{artifact_dir}/cell_type_markers_dotplot.pdf", bbox_inches="tight", dpi=1200
+)
 
 # %%
 fig = sc.pl.umap(
@@ -82,10 +84,40 @@ fig = sc.pl.umap(
     color=list(itertools.chain.from_iterable(marker_genes.values())),
     return_fig=True,
 )
-fig.savefig(f"{artifact_dir}/cell_type_markers_umap.pdf", dpi=600, bbox_inches="tight")
+fig.savefig(f"{artifact_dir}/cell_type_markers_umap.pdf", dpi=1200, bbox_inches="tight")
 
 # %% [markdown]
-# ## Marker genes 
+# ## Marker genes 2
+
+# %%
+v600e_signature = [
+    x.strip()
+    for x in """
+ - IL2RA
+- CCND1
+- ETV5
+- DUSP6
+- EGR1
+- SPRY2
+- ITGAX
+- ACP5
+- GAS7
+- FLT3
+- FGFR1
+""".replace(
+        "-", ""
+    ).split()
+]
+
+# %%
+fig = sc.pl.dotplot(adata, var_names={
+    "Plasma cell": ["MZB1", "SDC1"],
+    "T lineage": ["CD3E"], 
+    "B lineage": ["CD79A"],
+    "healthy B cell": ["FAM129C"],
+    "HCL": v600e_signature
+},  groupby="cell_type", return_fig=True)
+fig.savefig(f"{artifact_dir}/braf_v600e_markers_dotplot.pdf", dpi=600, bbox_inches="tight")
 
 # %% [markdown]
 # ## cell stats
@@ -96,9 +128,9 @@ sh.util.cell_type_fractions(
 ).to_csv(f"{artifact_dir}/cell_type_fractions_patient_timepoint.csv")
 
 # %%
-sh.util.cell_type_fractions(
-    adata, ["patient", "cell_type"], ["patient"]
-).to_csv(f"{artifact_dir}/cell_type_fractions_patient.csv")
+sh.util.cell_type_fractions(adata, ["patient", "cell_type"], ["patient"]).to_csv(
+    f"{artifact_dir}/cell_type_fractions_patient.csv"
+)
 
 # %%
 sh.util.cell_type_fractions(
