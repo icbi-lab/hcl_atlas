@@ -381,9 +381,15 @@ wnt_signatures = {
 mapk_signatures = {
     s: g for s, g in signatures.items() if "mapk" in s.lower() and "GOBP_" in s
 }
+erk_signatures = {
+    s: g for s, g in signatures.items() if "erk" in s.lower() and "GOBP_" in s
+}
+jnk_signatures = {
+    s: g for s, g in signatures.items() if "jnk" in s.lower() and "GOBP_" in s
+}
 
 # %%
-all_signatures = {**wnt_signatures, **mapk_signatures}
+all_signatures = {**wnt_signatures, **mapk_signatures, **erk_signatures, **jnk_signatures}
 
 # %%
 for signature, genes in tqdm(all_signatures.items()):
@@ -650,6 +656,34 @@ ch = sh.pairwise.plot_paired_fc(
     swap_axes=True,
 )
 ch.save(f"{artifact_dir}/gobp_mapk_malignant_b_vs_fos_malignant_b_barchart.svg")
+ch.display()
+
+# %%
+selected_signatures = [x.upper() for x in [
+    "GOBP_negative_regulation_of_p38MAPK_Cascade", 
+    "GOBP_positive_regulation_of_p38MAPK_Cascade",
+    "GOBP_negative_regulation_of_JNK_Cascade",
+    "GOBP_positive_regulation_of_JNK_Cascade",
+    "GOBP_POSITIVE_REGULATION_OF_ERK1_AND_ERK2_CASCADE",
+    "GOBP_NEGATIVE_REGULATION_OF_ERK1_AND_ERK2_CASCADE"
+]]
+
+# %%
+tmp_res = res.loc[lambda x: x["variable"].isin(selected_signatures)].pipe(
+    sh.util.fdr_correction
+)
+ch = sh.pairwise.plot_paired_fc(
+    pb_pw_malignant_b2,
+    groupby="cell_phenotype",
+    paired_by="patient",
+    metric="diff",
+    var_names=list(selected_signatures),
+    de_res_df=tmp_res,
+    pvalue_col="fdr",
+    var_col="variable",
+    swap_axes=True,
+)
+ch.save(f"{artifact_dir}/gobp_selected_go_terms_malignant_b_vs_fos_malignant_b_barchart.svg")
 ch.display()
 
 # %%
