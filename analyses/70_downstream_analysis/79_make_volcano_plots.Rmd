@@ -1,6 +1,8 @@
 ---
 title: "Untitled"
 output: html_document
+params:
+  artifact_dir: "../../data/70_downstream_analyses/volcano_plots"
 ---
 
 ```{r setup, include=FALSE}
@@ -10,107 +12,169 @@ library(readr)
 library(EnhancedVolcano)
 library(ggrepel)
 conflict_prefer("filter", "dplyr")
+
+dir.create(params$artifact_dir, showWarnings = FALSE)
+```
+
+```{r}
+enhanced_enhanced_volcano = function(resIHW, selected_genes, title) {
+  fdr_cutoff = 0.1
+  fc_cutoff = 1
+  df_selected_genes = resIHW |> filter(gene_id %in% selected_genes)
+  # make sure selected genes are plotted on top
+  resIHW = resIHW |> arrange(gene_id %in% selected_genes)
+  
+  # custom colors and point sizes
+  custom_col <- ifelse(
+    resIHW$gene_id %in% selected_genes,
+    '#f0027f',
+    ifelse(
+      abs(resIHW$log2FoldChange) > fc_cutoff &
+        resIHW$padj < fdr_cutoff,
+      '#fdc086',
+      '#bababa'
+    )
+  )
+  custom_col[is.na(custom_col)] <- '#bababa'
+  names(custom_col)[custom_col == '#fdc086'] <- 'siginficant'
+  names(custom_col)[custom_col == '#bababa'] <- 'not significant'
+  names(custom_col)[custom_col == '#f0027f'] <- 'highlighted'
+  custom_size = ifelse(custom_col == "#f0027f", 2, 1.5)
+  
+  EnhancedVolcano(
+    resIHW,
+    lab = resIHW$gene_id,
+    x = "log2FoldChange",
+    y = "padj",
+    ylab = bquote( ~ -Log[10] ~ italic(FDR)),
+    pCutoff = fdr_cutoff,
+    FCcutoff = fc_cutoff,
+    # boxedLabels=TRUE,
+    drawConnectors = TRUE,
+    subtitle = "",
+    pointSize = custom_size,
+    # col = c("#bababa", "#bababa", "#bababa", "#ca0020"),
+    legendPosition = "right",
+    colAlpha = 1,
+    maxoverlapsConnectors = Inf,
+    labSize = 4,
+    colCustom = custom_col,
+    caption = paste0(
+      "fold change cutoff: ",
+      round(2 ** fc_cutoff, 1),
+      ", FDR cutoff: ",
+      fdr_cutoff
+    ),
+    title = title,
+    selectLab = selected_genes,
+    gridlines.minor = FALSE
+  )
+}
 ```
 
 ### SR vs LR - T0
-```{r}
-resIHW = read_tsv("../../data/70_de_analysis/72_run_de/deseq2_res_bulk_response_t0/short_term_long_term_IHWallGenes.tsv")
-```
 
-```{r, fig.width=12, fig.height=10}
-fdr_cutoff = 0.1
-fc_cutoff = 1
-EnhancedVolcano(resIHW,
-                lab = resIHW$gene_id,
-                x = "log2FoldChange",
-                y = "padj",
-                pCutoff = fdr_cutoff,
-                FCcutoff = fc_cutoff,
-                boxedLabels=TRUE,
-                drawConnectors = TRUE,
-                subtitle = "",
-                legendPosition = "right",
-                maxoverlapsConnectors = Inf,
-                caption = paste0("fold change cutoff: ", round(2**fc_cutoff, 1), ", adj.p-value cutoff: ", fdr_cutoff),
-                title = "short term vs. long term (T0)",
-                selectLab = c("LGR5", "MYO7B",  "CD24", "MOXD1",  "RHOB",  "KLF2",  "ITGB1",  "OSTN",  "TUSC1",  "XIST", "GABRA3"))
+```{r, fig.width=7.5, fig.height=6}
+resIHW = read_tsv("../../data/50_de_analysis/deseq2_results/deseq2_res_bulk_response_t0/short_term_long_term_IHWallGenes.tsv")
+
+enhanced_enhanced_volcano(
+  resIHW,
+  c(
+    "LGR5",
+    "MYO7B",
+    "CD24",
+    "MOXD1",
+    "RHOB",
+    "KLF2",
+    "ITGB1",
+    "OSTN",
+    "TUSC1",
+    "XIST",
+    "GABRA3"
+  ),
+  title = "short term vs. long term (T0)"
+)
+ggsave(file.path(params$artifact_dir, "short_term_long_term_t0.pdf"))
 ```
 
 
 ### Post vs Pre SR-2/3
 
-```{r}
-resIHW = read_tsv("../../data/70_de_analysis/72_run_de/deseq2_res_bulk_timepoints/post-treatment_pre-treatment_IHWallGenes.tsv")
+
+
+```{r, fig.width=7.5, fig.height=6}
+resIHW = read_tsv("../../data/50_de_analysis/deseq2_results/deseq2_res_bulk_timepoints/post-treatment_pre-treatment_IHWallGenes.tsv")
+
+enhanced_enhanced_volcano(
+  resIHW,
+  c(
+    "FAM177B",
+    "CCR1",
+    # "MYO7B",
+    "DUSP5",
+    # "PALLD",
+    "ALOX5"
+    # "KLF10",
+    # "CDKN2C"
+  ),
+  title = "Post. vs. Pre (SR2 and SR3)"
+)
+ggsave(file.path(params$artifact_dir, "pre_vs_post.pdf"))
 ```
-
-```{r, fig.width=12, fig.height=10}
-fdr_cutoff = 0.1
-fc_cutoff = 1
-EnhancedVolcano(resIHW,
-                lab = resIHW$gene_id,
-                x = "log2FoldChange",
-                y = "padj",
-                pCutoff = fdr_cutoff,
-                FCcutoff = fc_cutoff,
-                boxedLabels=TRUE,
-                drawConnectors = TRUE,
-                subtitle = "",
-                legendPosition = "right",
-                maxoverlapsConnectors = Inf,
-                caption = paste0("fold change cutoff: ", round(2**fc_cutoff, 1), ", adj.p-value cutoff: ", fdr_cutoff),
-                title = "Post. vs. Pre SR2 and SR3",
-                selectLab = c("FAM177B", "CCR1", "MYO7B", "DUSP5", "PALLD", "ALOX5", "KLF10", "CDKN2C"))
-```
-
-
 
 ### FOS malignant vs other malignant
 
-```{r}
-resIHW = read_tsv("../../data/70_de_analysis/72_run_de/deseq2_res_sc_fosb_b_cells/fos_malignant_b_malignant_b_IHWallGenes.tsv")
+```{r, fig.width=7.5, fig.height=6}
+resIHW = read_tsv("../../data/50_de_analysis/deseq2_results/deseq2_res_bulk_fos_jun_vs_rest/DUSP1ʰᶦ╱FOSBʰᶦ╱JUNDʰᶦ_DUSP1ˡᵒ╱FOSBˡᵒ╱JUNDˡᵒ_IHWallGenes.tsv")
+
+enhanced_enhanced_volcano(
+  resIHW,
+  c(
+    "FOS",
+    "KLF4",
+    "JUND",
+    "DUSP1",
+    "RGS1",
+    "KLF6",
+    "TNF",
+    "DUSP6",
+    "FOSB"
+    # "XIST",
+    # "RHOB",
+    # "GPR183",
+    # "KLF2"
+  ),
+  title = "DUSP1ʰᶦ╱FOSBʰᶦ╱JUNDʰᶦ vs. DUSP1ˡᵒ╱FOSBˡᵒ╱JUNDˡᵒ"
+)
+ggsave(file.path(params$artifact_dir, "fos_hi_vs_fos_lo.pdf"))
 ```
 
-```{r, fig.width=12, fig.height=10}
-fdr_cutoff = 0.1
-fc_cutoff = 1
-EnhancedVolcano(resIHW,
-                lab = resIHW$gene_id,
-                x = "log2FoldChange",
-                y = "padj",
-                pCutoff = fdr_cutoff,
-                FCcutoff = fc_cutoff,
-                boxedLabels=TRUE,
-                drawConnectors = TRUE,
-                subtitle = "",
-                legendPosition = "right",
-                maxoverlapsConnectors = Inf,
-                caption = paste0("fold change cutoff: ", round(2**fc_cutoff, 1), ", adj.p-value cutoff: ", fdr_cutoff),
-                title = "Fos+ malignant B cells vs other malignant B cells",
-                selectLab = c("FOS", "KLF4", "JUND", "DUSP1", "RGS1", "KLF6", "TNF", "DUSP6", "XIST", "RHOB", "GPR183", "KLF2"))
-```
 
 ### malignant B vs. B 
 
-```{r}
-resIHW = read_tsv("../../data/70_de_analysis/72_run_de/deseq2_res_sc_healthy_vs_malignant_b_cells/malignant_healthy_IHWallGenes.tsv")
-```
+```{r, fig.width=7.5, fig.height=6}
+resIHW = read_tsv("../../data/50_de_analysis/deseq2_results/deseq2_res_bulk_healthy_malignant/HCL cell_healthy B cell_IHWallGenes.tsv")
 
-```{r, fig.width=12, fig.height=10}
-fdr_cutoff = 0.1
-fc_cutoff = 1
-EnhancedVolcano(resIHW,
-                lab = resIHW$gene_id,
-                x = "log2FoldChange",
-                y = "padj",
-                pCutoff = fdr_cutoff,
-                FCcutoff = fc_cutoff,
-                boxedLabels=TRUE,
-                drawConnectors = TRUE,
-                subtitle = "",
-                legendPosition = "right",
-                maxoverlapsConnectors = Inf,
-                caption = paste0("fold change cutoff: ", round(2**fc_cutoff, 1), ", adj.p-value cutoff: ", fdr_cutoff),
-                title = "malignant vs. healthy B cells",
-                selectLab = c("ILR2", "DUSP6", "GAS7", "IL2RA", "SYT1", "STAG3", "HOPX", "KLF4", "ITGB1", "FLT3", "IL1R2", "HLA-DRB1", "HLA-DQA1", "S100A4"))
+enhanced_enhanced_volcano(
+  resIHW,
+  c(
+    "ILR2",
+    "DUSP6",
+    "GAS7",
+    "IL2RA",
+    "SYT1",
+    "STAG3",
+    "HOPX",
+    "KLF4",
+    "ITGB1",
+    "FLT3",
+    "IL1R2",
+    "HLA-DRB1",
+    "HLA-DQA1",
+    "S100A4"
+  ),
+  title = "HCL cells vs. healthy B cells"
+)
+ggsave(file.path(params$artifact_dir, "hcl_vs_healthy_b.pdf"))
 ```
 
