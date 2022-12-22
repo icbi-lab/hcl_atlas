@@ -8,6 +8,7 @@ process DESEQ2 {
 
     cpus { meta['singlecell'] ? 11 : 4 }
     conda "/data/scratch/sturm/conda/envs/2021-hairy-cell-leukemia-wolf-de2"
+    // container "${projectDir}/../../data/containers/2021-hairy-cell-leukemia-wolf-de2.sif"
     errorStrategy 'finish'
 
     input:
@@ -47,8 +48,8 @@ workflow {
                 [singlecell: false, id: "bulk_response_all_timepoints", c1: "short_term", c2: "long_term", sample_col: "sample_id", condition_col: "response"],
                 [singlecell: false, id: "bulk_response_t0", c1: "short_term", c2: "long_term", sample_col: "sample_id", condition_col: "response"],
                 [singlecell: false, id: "bulk_timepoints", c1: "post-treatment", c2: "pre-treatment", sample_col: "sample_id", condition_col: "timepoint", paired_grp: "patient"],
-                [singlecell: false, id: "bulk_fos_jun_vs_rest", c1: "fos_malignant_b", c2: "malignant_b", sample_col: "sample_id", condition_col: "cell_phenotype", paired_grp: "patient"],
-                [singlecell: false, id: "bulk_healthy_malignant", c1: "healthy_b_cell", c2: "malignant_b_cell", sample_col: "sample_id", condition_col: "cell_type", paired_grp: "patient"],
+                [singlecell: false, id: "bulk_fos_jun_vs_rest", c1: "DUSP1ʰᶦ╱FOSBʰᶦ╱JUNDʰᶦ", c2: "DUSP1ˡᵒ╱FOSBˡᵒ╱JUNDˡᵒ", sample_col: "sample_id", condition_col: "cell_phenotype", paired_grp: "patient"],
+                [singlecell: false, id: "bulk_healthy_malignant", c1: "healthy B cell", c2: "HCL cell", sample_col: "sample_id", condition_col: "cell_type", paired_grp: "patient"],
             ]
         ).map {
             it -> [

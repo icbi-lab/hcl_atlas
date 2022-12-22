@@ -58,8 +58,8 @@ class COLORS:
     # Dark2
     cell_type = {
         "healthy B cell": "#1b9e77",
-        "malignant B cell": "#d95f02",
-        "malignant B cell (dividing)": "#e7298a",
+        "HCL cell": "#d95f02",
+        "HCL cell (dividing)": "#e7298a",
         "T cell": "#7570b3",
         "Plasma cell": "#66a61e",
     }
@@ -70,4 +70,7 @@ class COLORS:
     #     "female": "#fccde5",
     #     "unknown": "#dddddd",
     # }
+    
+    # DUSP1ˡᵒ╱FOSBˡᵒ╱JUNDˡᵒ
+    # DUSP1ʰᶦ╱FOSBʰᶦ╱JUNDʰᶦ
     pass
